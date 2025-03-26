@@ -5,22 +5,20 @@ module memory(
   input we
 );
 
-reg [31:0] mem[0:1024]; // 16KB de memória
-integer i;
+  reg [31:0] mem[0:1023]; // 4KB de memória (1024 palavras de 32 bits)
+  integer i;
 
-always @(address or data_in or we) begin
-  if (we) begin
-    mem[address] = data_in;
+  always @(*) begin
+    if (we)
+      mem[address[13:2]] = data_in;
+    data_out = mem[address[13:2]];
   end
-  data_out = mem[address[13:2]];
-end
 
+  initial begin
+    for (i = 0; i < 1024; i = i + 1)
+      mem[i] = 32'h00000000;
 
-initial begin
-  for (i = 0; i < 1024; i = i + 1) begin
-    mem[i] = 32'h00000000;
+    $readmemh("memory.mem", mem); // Carrega programa
   end
-  $readmemh("memory.mem", mem);
-end
 
 endmodule
