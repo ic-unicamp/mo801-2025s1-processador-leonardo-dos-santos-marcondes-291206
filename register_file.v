@@ -24,6 +24,6 @@ module register_file(
     // $display("reg_write: %b, rs1 : %b, rs2 : %b, write_data : %h", reg_write, rs1, rs2, write_data);
     if (reg_write && rd != 0)
       regs[rd] <= write_data;
-    // $display("X0 : %h, X1 : %h, X2 : %h", regs[0], regs[1], regs[2]);
+    // $display("X0 : %h, X1 : %h, X2 : %h, X3 : %h, X4 : %h", regs[0], regs[1], regs[2], regs[3], regs[4]);
   end
 endmodule

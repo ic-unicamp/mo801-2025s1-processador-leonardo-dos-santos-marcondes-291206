@@ -2,6 +2,8 @@ module control_unit (
   input clk,
   input resetn,
   input [6:0] opcode,
+  input [6:0] funct7,
+  input [2:0] funct3,
   output reg [3:0] state,
   output mem_read,
   output mem_write,
@@ -182,7 +184,31 @@ module control_unit (
       EX_R: begin
         alu_src_a_reg = 2'b10; // Registrador A como primeiro operando
         alu_src_b_reg = 2'b00; // Registrador B como segundo operando
-        alu_control_reg = 4'b0010; // Operação (ajuste conforme necessário)
+
+        
+        // Decodificação de todas as instruções tipo R
+        case ({funct7, funct3})
+          // Operações aritméticas
+          {7'h00, 3'h0}: alu_control_reg = 4'b0010; // ADD
+          {7'h20, 3'h0}: alu_control_reg = 4'b0110; // SUB
+          
+          // Operações de comparação
+          {7'h00, 3'h2}: alu_control_reg = 4'b0111; // SLT
+          {7'h00, 3'h3}: alu_control_reg = 4'b1001; // SLTU
+          
+          // Operações lógicas
+          {7'h00, 3'h4}: alu_control_reg = 4'b0011; // XOR
+          {7'h00, 3'h6}: alu_control_reg = 4'b0001; // OR
+          {7'h00, 3'h7}: alu_control_reg = 4'b0000; // AND
+          
+          // Operações de deslocamento
+          {7'h00, 3'h1}: alu_control_reg = 4'b0100; // SLL
+          {7'h00, 3'h5}: alu_control_reg = 4'b0101; // SRL
+          {7'h20, 3'h5}: alu_control_reg = 4'b1000; // SRA
+          
+          // Comportamento padrão
+          default: alu_control_reg = 4'b0000;
+        endcase
       end
       
       EX_I: begin

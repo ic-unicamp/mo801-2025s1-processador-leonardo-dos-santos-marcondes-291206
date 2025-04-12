@@ -98,6 +98,8 @@ module core(
     .clk(clk),
     .resetn(resetn),
     .opcode(opcode),
+    .funct7(funct7),
+    .funct3(funct3),
     .state(state),
     .mem_read(mem_read),
     .mem_write(mem_write),

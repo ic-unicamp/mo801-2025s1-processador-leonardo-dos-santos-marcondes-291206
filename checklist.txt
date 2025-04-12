@@ -1,0 +1,73 @@
+INSTRUÇÕES TIPO R
+
+ ✅ ADD - Adição
+ ✅ SUB - Subtração
+ ✅ SLL - Deslocamento lógico à esquerda
+ ✅ SLT - Set if less than (signed)
+ ✅ SLTU - Set if less than (unsigned)
+ ✅ XOR - OR exclusivo
+ ✅ SRL - Deslocamento lógico à direita
+ ✅ SRA - Deslocamento aritmético à direita
+ ✅ OR - OR lógico
+ ✅ AND - AND lógico
+
+INSTRUÇÕES TIPO I
+
+ ✅ ADDI - Adição com imediato
+ SLTI - Set if less than imm (signed)
+ SLTIU - Set if less than imm (unsigned)
+ XORI - XOR com imediato
+ ORI - OR com imediato
+ ANDI - AND com imediato
+ SLLI - Deslocamento lógico à esquerda com imediato
+ SRLI - Deslocamento lógico à direita com imediato
+ SRAI - Deslocamento aritmético à direita com imediato
+
+INSTRUÇÕES DE LOAD (TIPO I)
+
+ LB - Load byte
+ LH - Load half-word
+ LW - Load word
+ LBU - Load byte unsigned
+ LHU - Load half-word unsigned
+
+INSTRUÇÕES TIPO S (STORE)
+
+ SB - Store byte
+ SH - Store half-word
+ ✅ SW - Store word
+
+INSTRUÇÕES TIPO B (BRANCH)
+
+ BEQ - Branch if equal
+ BNE - Branch if not equal
+ BLT - Branch if less than (signed)
+ BGE - Branch if greater/equal (signed)
+ BLTU - Branch if less than (unsigned)
+ BGEU - Branch if greater/equal (unsigned)
+
+INSTRUÇÕES TIPO U (UPPER IMMEDIATE)
+
+ LUI - Load upper immediate
+ AUIPC - Add upper immediate to PC
+
+INSTRUÇÕES TIPO J (JUMP)
+
+ JAL - Jump and link
+ JALR - Jump and link register
+
+INSTRUÇÕES DE CONTROLE DO SISTEMA
+
+ ECALL - Environment call
+ ✅ EBREAK - Environment break
+ FENCE - Fence
+ FENCE.I - Fence instruction
+
+INSTRUÇÕES CSR (CONTROL AND STATUS REGISTER)
+
+ CSRRW - CSR Read/Write
+ CSRRS - CSR Read/Set
+ CSRRC - CSR Read/Clear
+ CSRRWI - CSR Read/Write Immediate
+ CSRRSI - CSR Read/Set Immediate
+ CSRRCI - CSR Read/Clear Immediate
