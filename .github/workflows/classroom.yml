@@ -11,19 +11,121 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'github-classroom[bot]'
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Teste 00
-      id: teste-00
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: Teste 00
-        setup-command: "./setup.sh"
-        command: "./run.sh 00"
-        timeout: 10
-    - name: Autograding Reporter
-      uses: classroom-resources/autograding-grading-reporter@v1
-      env:
-        TESTE-00_RESULTS: "${{steps.teste-00.outputs.result}}"
-      with:
-        runners: teste-00
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Teste 00
+        id: teste-00
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 00
+          setup-command: "./setup.sh"
+          command: "./run.sh 00"
+          timeout: 10
+      
+      - name: Teste 10
+        id: teste-10
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 10
+          setup-command: "./setup.sh"
+          command: "./run.sh 10"
+          timeout: 10
+      
+      - name: Teste 11
+        id: teste-11
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 11
+          setup-command: "./setup.sh"
+          command: "./run.sh 11"
+          timeout: 10
+      
+      - name: Teste 12
+        id: teste-12
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 12
+          setup-command: "./setup.sh"
+          command: "./run.sh 12"
+          timeout: 10
+      
+      - name: Teste 13
+        id: teste-13
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 13
+          setup-command: "./setup.sh"
+          command: "./run.sh 13"
+          timeout: 10
+      
+      - name: Teste 14
+        id: teste-14
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 14
+          setup-command: "./setup.sh"
+          command: "./run.sh 14"
+          timeout: 10
+      
+      - name: Teste 15
+        id: teste-15
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 15
+          setup-command: "./setup.sh"
+          command: "./run.sh 15"
+          timeout: 10
+      
+      - name: Teste 16
+        id: teste-16
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 16
+          setup-command: "./setup.sh"
+          command: "./run.sh 16"
+          timeout: 10
+      
+      - name: Teste 17
+        id: teste-17
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 17
+          setup-command: "./setup.sh"
+          command: "./run.sh 17"
+          timeout: 10
+      
+      - name: Teste 18
+        id: teste-18
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 18
+          setup-command: "./setup.sh"
+          command: "./run.sh 18"
+          timeout: 10
+      
+      - name: Teste 19
+        id: teste-19
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 19
+          setup-command: "./setup.sh"
+          command: "./run.sh 19"
+          timeout: 10
+      
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          TESTE-00_RESULTS: "${{steps.teste-00.outputs.result}}"
+          TESTE-10_RESULTS: "${{steps.teste-10.outputs.result}}"
+          TESTE-11_RESULTS: "${{steps.teste-11.outputs.result}}"
+          TESTE-12_RESULTS: "${{steps.teste-12.outputs.result}}"
+          TESTE-13_RESULTS: "${{steps.teste-13.outputs.result}}"
+          TESTE-14_RESULTS: "${{steps.teste-14.outputs.result}}"
+          TESTE-15_RESULTS: "${{steps.teste-15.outputs.result}}"
+          TESTE-16_RESULTS: "${{steps.teste-16.outputs.result}}"
+          TESTE-17_RESULTS: "${{steps.teste-17.outputs.result}}"
+          TESTE-18_RESULTS: "${{steps.teste-18.outputs.result}}"
+          TESTE-19_RESULTS: "${{steps.teste-19.outputs.result}}"
+        with:
+          runners: teste-00 teste-10 teste-11 teste-12 teste-13 teste-14 teste-15 teste-16 teste-17 teste-18 teste-19
