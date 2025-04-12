@@ -1,88 +1,233 @@
 module control_unit (
   input clk,
   input resetn,
-  input [6:0] opcode,     // opcode da instrução atual
+  input [6:0] opcode,
   output reg [3:0] state,
-  output reg mem_read,
-  output reg mem_write,
-  output reg reg_write,
-  output reg [1:0] alu_src_a,
-  output reg [1:0] alu_src_b,
-  output reg [3:0] alu_control,
-  output reg [1:0] imm_src,
-  output reg ir_write,
-  output reg pc_write,
-  output reg mem_to_reg
+  output mem_read,
+  output mem_write,
+  output reg_write,
+  output [1:0] alu_src_a,
+  output [1:0] alu_src_b,
+  output [3:0] alu_control,
+  output ir_write,
+  output pc_write,
+  output mem_to_reg,
+  output [1:0] imm_src
 );
-
   // Definição dos estados
-  parameter IF = 4'd0,
-            ID = 4'd1,
-            EX = 4'd2,
-            MEM_RD = 4'd3,
-            MEM_WR = 4'd4,
-            WB = 4'd5,
-            IMM_I = 2'b00,
-            IMM_S = 2'b01;
+  parameter IF       = 4'd0;  // Instruction Fetch
+  parameter ID       = 4'd1;  // Instruction Decode
+  parameter EX_R     = 4'd2;  // Execute R-type
+  parameter EX_I     = 4'd3;  // Execute I-type
+  parameter EX_S     = 4'd4;  // Execute S-type
+  parameter EX_J     = 4'd5;  // Execute J-type
+  parameter MEM_RD   = 4'd6;  // Memory Read
+  parameter MEM_WR   = 4'd7;  // Memory Write
+  parameter WB_ALU   = 4'd8;  // Write Back from ALU
+  parameter WB_MEM   = 4'd9;  // Write Back from Memory
+  parameter HALT     = 4'd10; // Halt on EBREAK
 
-  always @(posedge clk or negedge resetn) begin
+  // Definição dos opcodes
+  parameter LW      = 7'b0000011;
+  parameter SW      = 7'b0100011;
+  parameter ALUIMM  = 7'b0010011;
+  parameter ALUREG  = 7'b0110011;
+  parameter LUI     = 7'b0110111;
+  parameter JAL     = 7'b1101111;
+  parameter EBREAK  = 7'b1110011;
+
+  // Definição dos formatos de imediato
+  parameter IMM_I = 2'b00;
+  parameter IMM_S = 2'b01;
+  parameter IMM_J = 2'b10;
+
+  // Registrador para o próximo estado
+  reg [3:0] next_state;
+  
+  // Detectores combinacionais de instrução
+  wire is_lw      = (opcode == LW);
+  wire is_sw      = (opcode == SW);
+  wire is_aluimm  = (opcode == ALUIMM);
+  wire is_alureg  = (opcode == ALUREG);
+  wire is_jal     = (opcode == JAL);
+  wire is_lui     = (opcode == LUI);
+  wire is_ebreak  = (opcode == EBREAK);
+
+  // Lógica de transição de estados
+  always @(posedge clk) begin
     if (!resetn) begin
       state <= IF;
     end else begin
-      $display("state = %0d, opcode = %b", state, opcode);
-      case (state)
-        // 1. Busca a instrução
-        IF: begin
-          ir_write <= 1;
-          pc_write <= 1;
-          alu_src_a <= 2'b00;      // PC
-          alu_src_b <= 2'b10;      // constante 4
-          alu_control <= 4'b0010;  // ADD
-          state <= ID;
-        end
-
-        // 2. Decodifica e lê registradores
-        ID: begin
-          ir_write <= 0;
-          pc_write <= 0;
-          alu_src_a <= 2'b10;
-          alu_src_b <= 2'b01;     // offset imediato
-          alu_control <= 4'b0010;      // ADD
-          if (opcode == 7'b0000011) begin       // lw
-            imm_src <= IMM_I;
-            state <= MEM_RD;
-          end else if (opcode == 7'b0100011) begin // sw
-            imm_src <= IMM_S;
-            state <= MEM_WR;
-          end else if (opcode == 7'b0110111) begin  // 
-            state <= IF; // pula o LUI (sem implementar por enquanto)
-          end else begin
-            state <= IF; // fallback para evitar travamento
-          end
-        end
-
-        // 3. Acesso à memória (leitura)
-        MEM_RD: begin
-          mem_read <= 1;
-          state <= WB;
-        end
-
-        // 4. Acesso à memória (escrita)
-        MEM_WR: begin
-          mem_write <= 1;
-          state <= IF;
-        end
-
-        // 5. Write-back para lw
-        WB: begin
-          mem_read <= 0;
-          reg_write <= 1;
-          mem_to_reg <= 1;
-          state <= IF;
-        end
-
-        default: state <= IF;
-      endcase
+      state <= next_state;
     end
+  end
+
+  // Lógica de próximo estado (depende do estado atual e entradas)
+  always @(*) begin
+    // Valor padrão para evitar latches
+    next_state = state;
+
+    case (state)
+      IF: begin
+        next_state = ID;
+      end
+      
+      ID: begin
+        if (is_lw)
+          next_state = EX_I;
+        else if (is_sw)
+          next_state = EX_S;
+        else if (is_aluimm)
+          next_state = EX_I;
+        else if (is_alureg)
+          next_state = EX_R;
+        else if (is_jal)
+          next_state = EX_J;
+        else if (is_lui)
+          next_state = IF;
+        else if (is_ebreak)
+          next_state = HALT;
+        else
+          next_state = IF;
+      end
+      
+      EX_R: begin
+        next_state = WB_ALU;
+      end
+      
+      EX_I: begin
+        if (is_lw)
+          next_state = MEM_RD;
+        else
+          next_state = WB_ALU;
+      end
+      
+      EX_S: begin
+        next_state = MEM_WR;
+      end
+      
+      EX_J: begin
+        next_state = WB_ALU;
+      end
+      
+      MEM_RD: begin
+        next_state = WB_MEM;
+      end
+      
+      MEM_WR: begin
+        next_state = IF;
+      end
+      
+      WB_ALU: begin
+        next_state = IF;
+      end
+      
+      WB_MEM: begin
+        next_state = IF;
+      end
+      
+      HALT: begin
+        next_state = HALT; // Permanece no estado HALT
+      end
+      
+      default: begin
+        next_state = IF;
+      end
+    endcase
+  end
+
+  // Lógica combinacional para sinais de controle
+  // Declarações de sinais para controle
+  reg mem_read_reg, mem_write_reg, reg_write_reg;
+  reg ir_write_reg, pc_write_reg, mem_to_reg_reg;
+  reg [1:0] alu_src_a_reg, alu_src_b_reg, imm_src_reg;
+  reg [3:0] alu_control_reg;
+  
+  // Atribuições combinacionais para saídas
+  assign mem_read = mem_read_reg;
+  assign mem_write = mem_write_reg;
+  assign reg_write = reg_write_reg;
+  assign ir_write = ir_write_reg;
+  assign pc_write = pc_write_reg;
+  assign mem_to_reg = mem_to_reg_reg;
+  assign alu_src_a = alu_src_a_reg;
+  assign alu_src_b = alu_src_b_reg;
+  assign alu_control = alu_control_reg;
+  assign imm_src = imm_src_reg;
+
+  // Lógica combinacional para gerar sinais de controle baseados no estado atual
+  always @(*) begin
+    // Inicializa todos os sinais com valores padrão
+    mem_read_reg = 0;
+    mem_write_reg = 0;
+    reg_write_reg = 0;
+    ir_write_reg = 0;
+    pc_write_reg = 0;
+    mem_to_reg_reg = 0;
+    alu_src_a_reg = 2'b00;
+    alu_src_b_reg = 2'b00;
+    alu_control_reg = 4'b0000;
+    imm_src_reg = 2'b00;
+    
+    // Define os sinais com base no estado atual
+    case (state)
+      IF: begin
+        ir_write_reg = 1;
+        alu_src_a_reg = 2'b00; // PC como primeiro operando
+        alu_src_b_reg = 2'b10; // Constante 4 como segundo operando
+        alu_control_reg = 4'b0010; // Adição
+        pc_write_reg = 1;
+      end
+            
+      EX_R: begin
+        alu_src_a_reg = 2'b10; // Registrador A como primeiro operando
+        alu_src_b_reg = 2'b00; // Registrador B como segundo operando
+        alu_control_reg = 4'b0010; // Operação (ajuste conforme necessário)
+      end
+      
+      EX_I: begin
+        alu_src_a_reg = 2'b10; // Registrador A como primeiro operando
+        alu_src_b_reg = 2'b01; // Imediato como segundo operando
+        alu_control_reg = 4'b0010; // Adição
+        imm_src_reg = IMM_I;
+      end
+      
+      EX_S: begin
+        alu_src_a_reg = 2'b10; // Registrador A como primeiro operando
+        alu_src_b_reg = 2'b01; // Imediato como segundo operando
+        alu_control_reg = 4'b0010; // Adição
+        imm_src_reg = IMM_S;
+      end
+      
+      EX_J: begin
+        alu_src_a_reg = 2'b00; // PC como primeiro operando
+        alu_src_b_reg = 2'b01; // Imediato como segundo operando
+        alu_control_reg = 4'b0010; // Adição
+        imm_src_reg = IMM_J;
+        pc_write_reg = 1;
+      end
+      
+      MEM_RD: begin
+        mem_read_reg = 1;
+      end
+      
+      MEM_WR: begin
+        mem_write_reg = 1;
+      end
+      
+      WB_ALU: begin
+        reg_write_reg = 1;
+        mem_to_reg_reg = 0; // Seleciona ALUOut
+      end
+      
+      WB_MEM: begin
+        reg_write_reg = 1;
+        mem_to_reg_reg = 1; // Seleciona MDR
+      end
+      
+      HALT: begin
+        // Nenhum sinal ativo
+      end
+    endcase
   end
 endmodule
