@@ -128,4 +128,4 @@ jobs:
           TESTE-18_RESULTS: "${{steps.teste-18.outputs.result}}"
           TESTE-19_RESULTS: "${{steps.teste-19.outputs.result}}"
         with:
-          runners: teste-00 teste-10 teste-11 teste-12 teste-13 teste-14 teste-15 teste-16 teste-17 teste-18 teste-19
+          runners: teste-00,teste-10,teste-11,teste-12,teste-13,teste-14,teste-15,teste-16,teste-17,teste-18,teste-19
