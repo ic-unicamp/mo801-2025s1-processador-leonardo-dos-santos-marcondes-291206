@@ -7,9 +7,22 @@ module core(
   output [3:0] byte_enable,
   output we
 );
+
+  // Parâmetros para estados
+  parameter IF       = 4'd0;
+  parameter ID       = 4'd1;
+  parameter EX_R     = 4'd2;
+  parameter EX_I     = 4'd3;
+  parameter EX_S     = 4'd4;
+  parameter EX_J     = 4'd5;
+  parameter MEM_RD   = 4'd6;
+  parameter MEM_WR   = 4'd7;
+  parameter WB_ALU   = 4'd8;
+  parameter WB_MEM   = 4'd9;
+  parameter HALT     = 4'd10;
+
   // Registradores internos
   reg [31:0] PC, IR, A, B, ALUOut, MDR;
-  wire [31:0] write_data;
   
   // Declaração dos wires
   wire [6:0] opcode;
@@ -37,8 +50,15 @@ module core(
   wire [2:0] load_type; 
   wire [2:0] store_type;
   wire [31:0] store_data;
+  wire [31:0] write_data;
+  wire [15:0] half_data;
+  wire [31:0] next_PC;
+  wire [31:0] next_IR;
+  wire [31:0] next_A;
+  wire [31:0] next_B;
+  wire [31:0] next_ALUOut;
+  wire [31:0] next_MDR;
 
-  
   // Atribuições combinacionais para parse de instrução
   assign opcode = IR[6:0];
   assign rd     = IR[11:7];
@@ -86,19 +106,31 @@ module core(
                        4'b1111; // SW (todos os bytes)
                        
   assign write_data = mem_to_reg ? MDR : ALUOut;
-  
-  // Parâmetros para estados
-  parameter IF       = 4'd0;
-  parameter ID       = 4'd1;
-  parameter EX_R     = 4'd2;
-  parameter EX_I     = 4'd3;
-  parameter EX_S     = 4'd4;
-  parameter EX_J     = 4'd5;
-  parameter MEM_RD   = 4'd6;
-  parameter MEM_WR   = 4'd7;
-  parameter WB_ALU   = 4'd8;
-  parameter WB_MEM   = 4'd9;
-  parameter HALT     = 4'd10;
+
+  assign byte_data = (ALUOut[1:0] == 2'b00) ? data_in[7:0]:
+                     (ALUOut[1:0] == 2'b01) ? data_in[15:8]:
+                     (ALUOut[1:0] == 2'b10) ? data_in[23:16]:
+                                              data_in[31:24];
+
+  // Para operações LH
+  assign half_data = (ALUOut[1:0] == 2'b00) ? data_in[15:0]:
+                     (ALUOut[1:0] == 2'b10) ? data_in[31:16]:
+                                              data_in[15:0]; 
+
+  assign load_data = (load_type == 3'b000) ? {{24{byte_data[7]}}, byte_data} :  // LB (extensão de sinal)
+                     (load_type == 3'b001) ? {{16{half_data[15]}}, half_data} : // LH (extensão de sinal)
+                     (load_type == 3'b010) ? data_in :                          // LW
+                     (load_type == 3'b100) ? {24'b0, byte_data} :               // LBU (extensão com zeros)
+                     (load_type == 3'b101) ? {16'b0, half_data} :               // LHU (extensão com zeros)
+                     data_in;  // Caso padrão
+
+  // Atribuição dos sinais
+  assign next_PC = pc_write ? alu_result : PC;
+  assign next_IR = ir_write ? data_in : IR;
+  assign next_A = (state == ID) ? reg_data1 : A;
+  assign next_B = (state == ID) ? reg_data2 : B;
+  assign next_ALUOut = ((state == EX_R) || (state == EX_I) || (state == EX_S) || (state == EX_J)) ? alu_result : ALUOut;
+  assign next_MDR = mem_read ? load_data : MDR;
   
   // Instanciação dos módulos
   register_file rf(
@@ -139,30 +171,8 @@ module core(
     .imm_src(imm_src)
   );
   
-  // Declaração dos sinais
-  wire [31:0] next_PC;
-  wire [31:0] next_IR;
-  wire [31:0] next_A;
-  wire [31:0] next_B;
-  wire [31:0] next_ALUOut;
-  wire [31:0] next_MDR;
-
-  // Atribuição dos sinais
-  assign next_PC = pc_write ? alu_result : PC;
-  assign next_IR = ir_write ? data_in : IR;
-  assign next_A = (state == ID) ? reg_data1 : A;
-  assign next_B = (state == ID) ? reg_data2 : B;
-  assign next_ALUOut = ((state == EX_R) || (state == EX_I) || (state == EX_S) || (state == EX_J)) ? alu_result : ALUOut;
-  assign next_MDR = mem_read ? data_in : MDR;
-  
   // Atualizações sequenciais dos registradores
   always @(posedge clk) begin
-
-    if (state == MEM_RD && opcode == 7'b0000011)
-      $display("LW: Endereço=%h, data_in=%h", ALUOut, data_in);
-
-    if (state == WB_MEM && opcode == 7'b0000011)
-      $display("LW WB: MDR=%h, write_data=%h, rd=%d", MDR, write_data, rd);
 
     if (!resetn) begin
 
@@ -181,12 +191,6 @@ module core(
       B <= next_B;
       ALUOut <= next_ALUOut;
       MDR <= next_MDR;
-
-      //if (state == 4'd3) // EX_I
-      //  $display("Estado EX_I: A=%h, imm=%h, alu_result=%h, next_ALUOut=%h", A, imm, alu_result, next_ALUOut);
-
-      // $display("WRITE_DATA : %h", next_write_data);
-      // $display("PC : %h, IR : %h, A : %h, B : %h, ALUout : %h, MDR : %h, write_data : %h", PC, IR, A, B, ALUOut, MDR, write_data);
 
     end
   end

@@ -113,7 +113,6 @@ jobs:
           command: "./run.sh 19"
           timeout: 10
           
-      # Adicionando testes de 20 a 27
       - name: Teste 20
         id: teste-20
         uses: classroom-resources/autograding-command-grader@v1
@@ -212,6 +211,42 @@ jobs:
           setup-command: "./setup.sh"
           command: "./run.sh 30"
           timeout: 10
+
+      - name: Teste 31
+        id: teste-31
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 31
+          setup-command: "./setup.sh"
+          command: "./run.sh 31"
+          timeout: 10
+      
+      - name: Teste 32
+        id: teste-32
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 32
+          setup-command: "./setup.sh"
+          command: "./run.sh 32"
+          timeout: 10
+      
+      - name: Teste 33
+        id: teste-33
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 33
+          setup-command: "./setup.sh"
+          command: "./run.sh 33"
+          timeout: 10
+
+      - name: Teste 34
+        id: teste-34
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 34
+          setup-command: "./setup.sh"
+          command: "./run.sh 34"
+          timeout: 10
       
       - name: Autograding Reporter
         uses: classroom-resources/autograding-grading-reporter@v1
@@ -238,5 +273,9 @@ jobs:
           TESTE-28_RESULTS: "${{steps.teste-28.outputs.result}}"
           TESTE-29_RESULTS: "${{steps.teste-29.outputs.result}}"
           TESTE-30_RESULTS: "${{steps.teste-30.outputs.result}}"
+          TESTE-31_RESULTS: "${{steps.teste-31.outputs.result}}"
+          TESTE-32_RESULTS: "${{steps.teste-32.outputs.result}}"
+          TESTE-33_RESULTS: "${{steps.teste-33.outputs.result}}"
+          TESTE-34_RESULTS: "${{steps.teste-34.outputs.result}}"
         with:
-          runners: teste-00,teste-10,teste-11,teste-12,teste-13,teste-14,teste-15,teste-16,teste-17,teste-18,teste-19,teste-20,teste-21,teste-22,teste-23,teste-24,teste-25,teste-26,teste-27,teste-28,teste-29,teste-30
+          runners: teste-00,teste-10,teste-11,teste-12,teste-13,teste-14,teste-15,teste-16,teste-17,teste-18,teste-19,teste-20,teste-21,teste-22,teste-23,teste-24,teste-25,teste-26,teste-27,teste-28,teste-29,teste-30,teste-31,teste-32,teste-33,teste-34
