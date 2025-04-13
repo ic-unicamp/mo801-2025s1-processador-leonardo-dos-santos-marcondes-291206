@@ -203,6 +203,15 @@ jobs:
           setup-command: "./setup.sh"
           command: "./run.sh 29"
           timeout: 10
+
+      - name: Teste 30
+        id: teste-30
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 30
+          setup-command: "./setup.sh"
+          command: "./run.sh 30"
+          timeout: 10
       
       - name: Autograding Reporter
         uses: classroom-resources/autograding-grading-reporter@v1
@@ -226,7 +235,8 @@ jobs:
           TESTE-25_RESULTS: "${{steps.teste-25.outputs.result}}"
           TESTE-26_RESULTS: "${{steps.teste-26.outputs.result}}"
           TESTE-27_RESULTS: "${{steps.teste-27.outputs.result}}"
-          TESTE-28_RESULTS: "${{steps.teste-27.outputs.result}}"
-          TESTE-29_RESULTS: "${{steps.teste-27.outputs.result}}"
+          TESTE-28_RESULTS: "${{steps.teste-28.outputs.result}}"
+          TESTE-29_RESULTS: "${{steps.teste-29.outputs.result}}"
+          TESTE-30_RESULTS: "${{steps.teste-30.outputs.result}}"
         with:
-          runners: teste-00,teste-10,teste-11,teste-12,teste-13,teste-14,teste-15,teste-16,teste-17,teste-18,teste-19,teste-20,teste-21,teste-22,teste-23,teste-24,teste-25,teste-26,teste-27,teste-28,teste-29
+          runners: teste-00,teste-10,teste-11,teste-12,teste-13,teste-14,teste-15,teste-16,teste-17,teste-18,teste-19,teste-20,teste-21,teste-22,teste-23,teste-24,teste-25,teste-26,teste-27,teste-28,teste-29,teste-30
