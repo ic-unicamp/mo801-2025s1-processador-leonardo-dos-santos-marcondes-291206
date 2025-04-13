@@ -182,10 +182,10 @@ module control_unit (
       end
             
       EX_R: begin
+
         alu_src_a_reg = 2'b10; // Registrador A como primeiro operando
         alu_src_b_reg = 2'b00; // Registrador B como segundo operando
 
-        
         // Decodificação de todas as instruções tipo R
         case ({funct7, funct3})
           // Operações aritméticas
@@ -212,10 +212,24 @@ module control_unit (
       end
       
       EX_I: begin
+
         alu_src_a_reg = 2'b10; // Registrador A como primeiro operando
         alu_src_b_reg = 2'b01; // Imediato como segundo operando
-        alu_control_reg = 4'b0010; // Adição
+
+        case (funct3)
+            3'h0: alu_control_reg = 4'b0010; // ADDI
+            3'h2: alu_control_reg = 4'b0111; // SLTI
+            3'h3: alu_control_reg = 4'b1001; // SLTIU
+            3'h4: alu_control_reg = 4'b0011; // XORI
+            3'h6: alu_control_reg = 4'b0001; // ORI
+            3'h7: alu_control_reg = 4'b0000; // ANDI
+            3'h1: alu_control_reg = 4'b0100; // SLLI
+            3'h5: alu_control_reg = (funct7 == 7'b0100000) ? 4'b1000 : 4'b0101; // SRAI or SRLI
+            default: alu_control_reg = 4'b0000;
+        endcase
+
         imm_src_reg = IMM_I;
+
       end
       
       EX_S: begin

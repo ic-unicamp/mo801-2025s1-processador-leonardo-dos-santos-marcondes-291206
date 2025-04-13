@@ -1,0 +1,10 @@
+05a00093 // addi x1, x0, 0x5A
+0ff0f113 // andi x2, x1, 0xFF
+00f0f193 // andi x3, x1, 0x0F
+0000f213 // andi x4, x1, 0x00
+40000a13 // addi x20, x0, 0x400
+014a0a33 // add x20, x20, x20
+002a2023 // sw x2, 0(x20)
+003a2223 // sw x3, 4(x20)
+004a2423 // sw x4, 8(x20)
+00100073 // ebreak

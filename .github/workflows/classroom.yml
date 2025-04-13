@@ -112,6 +112,79 @@ jobs:
           setup-command: "./setup.sh"
           command: "./run.sh 19"
           timeout: 10
+          
+      # Adicionando testes de 20 a 27
+      - name: Teste 20
+        id: teste-20
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 20
+          setup-command: "./setup.sh"
+          command: "./run.sh 20"
+          timeout: 10
+          
+      - name: Teste 21
+        id: teste-21
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 21
+          setup-command: "./setup.sh"
+          command: "./run.sh 21"
+          timeout: 10
+          
+      - name: Teste 22
+        id: teste-22
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 22
+          setup-command: "./setup.sh"
+          command: "./run.sh 22"
+          timeout: 10
+          
+      - name: Teste 23
+        id: teste-23
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 23
+          setup-command: "./setup.sh"
+          command: "./run.sh 23"
+          timeout: 10
+          
+      - name: Teste 24
+        id: teste-24
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 24
+          setup-command: "./setup.sh"
+          command: "./run.sh 24"
+          timeout: 10
+          
+      - name: Teste 25
+        id: teste-25
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 25
+          setup-command: "./setup.sh"
+          command: "./run.sh 25"
+          timeout: 10
+          
+      - name: Teste 26
+        id: teste-26
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 26
+          setup-command: "./setup.sh"
+          command: "./run.sh 26"
+          timeout: 10
+          
+      - name: Teste 27
+        id: teste-27
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 27
+          setup-command: "./setup.sh"
+          command: "./run.sh 27"
+          timeout: 10
       
       - name: Autograding Reporter
         uses: classroom-resources/autograding-grading-reporter@v1
@@ -127,5 +200,13 @@ jobs:
           TESTE-17_RESULTS: "${{steps.teste-17.outputs.result}}"
           TESTE-18_RESULTS: "${{steps.teste-18.outputs.result}}"
           TESTE-19_RESULTS: "${{steps.teste-19.outputs.result}}"
+          TESTE-20_RESULTS: "${{steps.teste-20.outputs.result}}"
+          TESTE-21_RESULTS: "${{steps.teste-21.outputs.result}}"
+          TESTE-22_RESULTS: "${{steps.teste-22.outputs.result}}"
+          TESTE-23_RESULTS: "${{steps.teste-23.outputs.result}}"
+          TESTE-24_RESULTS: "${{steps.teste-24.outputs.result}}"
+          TESTE-25_RESULTS: "${{steps.teste-25.outputs.result}}"
+          TESTE-26_RESULTS: "${{steps.teste-26.outputs.result}}"
+          TESTE-27_RESULTS: "${{steps.teste-27.outputs.result}}"
         with:
-          runners: teste-00,teste-10,teste-11,teste-12,teste-13,teste-14,teste-15,teste-16,teste-17,teste-18,teste-19
+          runners: teste-00,teste-10,teste-11,teste-12,teste-13,teste-14,teste-15,teste-16,teste-17,teste-18,teste-19,teste-20,teste-21,teste-22,teste-23,teste-24,teste-25,teste-26,teste-27

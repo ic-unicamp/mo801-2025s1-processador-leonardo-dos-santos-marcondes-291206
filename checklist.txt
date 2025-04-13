@@ -14,14 +14,14 @@ INSTRUÇÕES TIPO R
 INSTRUÇÕES TIPO I
 
  ✅ ADDI - Adição com imediato
- SLTI - Set if less than imm (signed)
- SLTIU - Set if less than imm (unsigned)
- XORI - XOR com imediato
- ORI - OR com imediato
- ANDI - AND com imediato
- SLLI - Deslocamento lógico à esquerda com imediato
- SRLI - Deslocamento lógico à direita com imediato
- SRAI - Deslocamento aritmético à direita com imediato
+ ✅ SLTI - Set if less than imm (signed)
+ ✅ SLTIU - Set if less than imm (unsigned)
+ ✅ XORI - XOR com imediato
+ ✅ ORI - OR com imediato
+ ✅ ANDI - AND com imediato
+ ✅ SLLI - Deslocamento lógico à esquerda com imediato
+ ✅ SRLI - Deslocamento lógico à direita com imediato
+ ✅ SRAI - Deslocamento aritmético à direita com imediato
 
 INSTRUÇÕES DE LOAD (TIPO I)
 
