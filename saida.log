@@ -1,6 +1,1 @@
-WARNING: memory.v:25: $readmemh(memory.mem): Not enough words in the file for the requested range [0:1023].
-VCD info: dumpfile saida.vcd opened for output.
-*** Starting simulation. ***
-000, 0000000
-000, 0100000
-=== M[0x000008c8] <- 0xfffffff8
+WARNING: memory.v:31: $readmemh(memory.mem): Not enough words in the file for the requested range [0:1023].

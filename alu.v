@@ -24,4 +24,7 @@ module alu(
       default: ALUResult = 32'b0;
     endcase
   end
+  //always @(ALUControl, A, B) begin
+  //  $display("ALU: A=%h, B=%h, ALUControl=%b, Result=%h", A, B, ALUControl, ALUResult);
+  //end
 endmodule

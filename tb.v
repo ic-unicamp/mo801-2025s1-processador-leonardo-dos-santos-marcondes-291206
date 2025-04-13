@@ -3,6 +3,7 @@ module tb();
 reg clk, resetn;
 wire we;
 wire [31:0] address, data_out, data_in;
+wire [3:0] byte_enable;
 
 core dut(
   .clk(clk),
@@ -10,6 +11,7 @@ core dut(
   .address(address),
   .data_out(data_out),
   .data_in(data_in),
+  .byte_enable(byte_enable),
   .we(we)
 );
 
@@ -18,6 +20,7 @@ memory m(
   .address(address),
   .data_in(data_out),
   .data_out(data_in),
+  .byte_enable(byte_enable),
   .we(we) 
 );
 

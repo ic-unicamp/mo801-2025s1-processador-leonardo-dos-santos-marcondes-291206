@@ -21,9 +21,10 @@ module register_file(
   
   // escrita síncrona
   always @(posedge clk) begin
-    // $display("reg_write: %b, rs1 : %b, rs2 : %b, write_data : %h", reg_write, rs1, rs2, write_data);
+    //$display("reg_write: %b, rs1 : %d, rs2 : %d, write_data : %h", reg_write, rs1, rs2, write_data);
+    // $display("read_data1 : %h, read_data2 : %h", read_data1, read_data2);
     if (reg_write && rd != 0)
       regs[rd] <= write_data;
-    // $display("X0 : %h, X1 : %h, X2 : %h, X3 : %h, X4 : %h", regs[0], regs[1], regs[2], regs[3], regs[4]);
+    //$display("X0 : %h, X1 : %h, X2 : %h, X3 : %h, X4 : %h, X5 : %h", regs[0], regs[1], regs[2], regs[3], regs[4], regs[5]);
   end
 endmodule

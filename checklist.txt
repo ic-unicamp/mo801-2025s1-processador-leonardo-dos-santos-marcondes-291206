@@ -27,13 +27,13 @@ INSTRUÇÕES DE LOAD (TIPO I)
 
  LB - Load byte
  LH - Load half-word
- LW - Load word
+ ✅ LW - Load word
  LBU - Load byte unsigned
  LHU - Load half-word unsigned
 
 INSTRUÇÕES TIPO S (STORE)
 
- SB - Store byte
+ ✅ SB - Store byte
  SH - Store half-word
  ✅ SW - Store word
 

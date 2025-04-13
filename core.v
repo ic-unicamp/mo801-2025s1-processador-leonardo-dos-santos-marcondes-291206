@@ -1,9 +1,10 @@
 module core(
   input clk,
   input resetn,
+  input [31:0] data_in,
   output [31:0] address,
   output [31:0] data_out,
-  input [31:0] data_in,
+  output [3:0] byte_enable,
   output we
 );
   // Registradores internos
@@ -31,6 +32,12 @@ module core(
   wire [31:0] reg_data1, reg_data2;
   wire [31:0] alu_in_a;
   wire [31:0] alu_in_b;
+  wire [31:0] load_data;
+  wire [7:0] byte_data;
+  wire [2:0] load_type; 
+  wire [2:0] store_type;
+  wire [31:0] store_data;
+
   
   // Atribuições combinacionais para parse de instrução
   assign opcode = IR[6:0];
@@ -42,6 +49,8 @@ module core(
   assign imm_i  = {{20{IR[31]}}, IR[31:20]};
   assign imm_s  = {{20{IR[31]}}, IR[31:25], IR[11:7]};
   assign imm_j  = {{12{IR[31]}}, IR[19:12], IR[20], IR[30:21], 1'b0};
+  assign load_type = funct3;
+  assign store_type = funct3;
   
   // Atribuições combinacionais para controle datapath
   assign imm    = (imm_src == 2'b00) ? imm_i :
@@ -58,7 +67,19 @@ module core(
   // Atribuições combinacionais para interface externa
   assign we = mem_write;
   assign address = (mem_read || mem_write) ? ALUOut : PC;
-  assign data_out = B;
+  
+  // Para o SB, precisamos posicionar o byte no lugar correto na palavra
+  assign store_data = (store_type == 3'b000) ? // SB
+                      ((ALUOut[1:0] == 2'b00) ? {data_in[31:8], B[7:0]} :
+                      (ALUOut[1:0] == 2'b01) ? {data_in[31:16], B[7:0], data_in[7:0]} :
+                      (ALUOut[1:0] == 2'b10) ? {data_in[31:24], B[7:0], data_in[15:0]} :
+                                                {B[7:0], data_in[23:0]}) :
+                      B; // SW (Store Word)
+    
+  assign data_out = ((funct3 == 3'b000) & (opcode == 7'b0100011)) ? store_data : B;
+  assign byte_enable = ((funct3 == 3'b000) & (opcode == 7'b0100011)) ? // SB
+                     (4'b0001 << ALUOut[1:0]) : // Shift para posicionar o bit correto
+                     4'b1111; // SW (todos os bytes)
   assign write_data = mem_to_reg ? MDR : ALUOut;
   
   // Parâmetros para estados
@@ -113,16 +134,31 @@ module core(
     .imm_src(imm_src)
   );
   
-  // Lógica combinacional para determinar próximos valores de registradores
-  wire [31:0] next_PC = pc_write ? alu_result : PC;
-  wire [31:0] next_IR = ir_write ? data_in : IR;
-  wire [31:0] next_A = (state == ID) ? reg_data1 : A;
-  wire [31:0] next_B = (state == ID) ? reg_data2 : B;
-  wire [31:0] next_ALUOut = ((state == EX_R) || (state == EX_I) || (state == EX_S) || (state == EX_J)) ? alu_result : ALUOut;
-  wire [31:0] next_MDR = mem_read ? data_in : MDR;
+  // Declaração dos sinais
+  wire [31:0] next_PC;
+  wire [31:0] next_IR;
+  wire [31:0] next_A;
+  wire [31:0] next_B;
+  wire [31:0] next_ALUOut;
+  wire [31:0] next_MDR;
+
+  // Atribuição dos sinais
+  assign next_PC = pc_write ? alu_result : PC;
+  assign next_IR = ir_write ? data_in : IR;
+  assign next_A = (state == ID) ? reg_data1 : A;
+  assign next_B = (state == ID) ? reg_data2 : B;
+  assign next_ALUOut = ((state == EX_R) || (state == EX_I) || (state == EX_S) || (state == EX_J)) ? alu_result : ALUOut;
+  assign next_MDR = mem_read ? data_in : MDR;
   
   // Atualizações sequenciais dos registradores
   always @(posedge clk) begin
+
+    if (state == MEM_RD && opcode == 7'b0000011)
+      $display("LW: Endereço=%h, data_in=%h", ALUOut, data_in);
+
+    if (state == WB_MEM && opcode == 7'b0000011)
+      $display("LW WB: MDR=%h, write_data=%h, rd=%d", MDR, write_data, rd);
+
     if (!resetn) begin
 
       PC <= 0;
@@ -132,8 +168,6 @@ module core(
       ALUOut <= 0;
       MDR <= 0;
 
-      // $display("Waiting reset memory");
-
     end else begin
     
       PC <= next_PC;
@@ -142,6 +176,9 @@ module core(
       B <= next_B;
       ALUOut <= next_ALUOut;
       MDR <= next_MDR;
+
+      //if (state == 4'd3) // EX_I
+      //  $display("Estado EX_I: A=%h, imm=%h, alu_result=%h, next_ALUOut=%h", A, imm, alu_result, next_ALUOut);
 
       // $display("WRITE_DATA : %h", next_write_data);
       // $display("PC : %h, IR : %h, A : %h, B : %h, ALUout : %h, MDR : %h, write_data : %h", PC, IR, A, B, ALUOut, MDR, write_data);
