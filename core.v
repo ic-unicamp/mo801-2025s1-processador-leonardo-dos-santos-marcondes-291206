@@ -68,18 +68,23 @@ module core(
   assign we = mem_write;
   assign address = (mem_read || mem_write) ? ALUOut : PC;
   
-  // Para o SB, precisamos posicionar o byte no lugar correto na palavra
-  assign store_data = (store_type == 3'b000) ? // SB
-                      ((ALUOut[1:0] == 2'b00) ? {data_in[31:8], B[7:0]} :
-                      (ALUOut[1:0] == 2'b01) ? {data_in[31:16], B[7:0], data_in[7:0]} :
-                      (ALUOut[1:0] == 2'b10) ? {data_in[31:24], B[7:0], data_in[15:0]} :
-                                                {B[7:0], data_in[23:0]}) :
-                      B; // SW (Store Word)
+  assign store_data = (store_type == 3'b000)   ? // SB
+                      ((ALUOut[1:0] == 2'b00)  ? {data_in[31:8], B[7:0]} :
+                      (ALUOut[1:0] == 2'b01)   ? {data_in[31:16], B[7:0], data_in[7:0]} :
+                      (ALUOut[1:0] == 2'b10)   ? {data_in[31:24], B[7:0], data_in[15:0]} :
+                      {B[7:0], data_in[23:0]}) : (store_type == 3'b001) ? // SH
+                      ((ALUOut[1:0] == 2'b00)  ? {data_in[31:16], B[15:0]} :
+                      (ALUOut[1:0] == 2'b10)   ? {B[15:0], data_in[15:0]} : data_in) : B; // SW 
     
-  assign data_out = ((funct3 == 3'b000) & (opcode == 7'b0100011)) ? store_data : B;
-  assign byte_enable = ((funct3 == 3'b000) & (opcode == 7'b0100011)) ? // SB
-                     (4'b0001 << ALUOut[1:0]) : // Shift para posicionar o bit correto
-                     4'b1111; // SW (todos os bytes)
+  assign data_out = ((opcode == 7'b0100011) && (funct3 == 3'b000 || funct3 == 3'b001)) ? store_data : B;
+
+  assign byte_enable = (store_type == 3'b000)   ? // SB
+                       (4'b0001 << ALUOut[1:0]) : 
+                       (store_type == 3'b001)   ? // SH
+                       ((ALUOut[1:0] == 2'b00)  ? 4'b0011 :
+                       (ALUOut[1:0] == 2'b10)   ? 4'b1100 : 4'b0000) : // Endereço não alinhado
+                       4'b1111; // SW (todos os bytes)
+                       
   assign write_data = mem_to_reg ? MDR : ALUOut;
   
   // Parâmetros para estados

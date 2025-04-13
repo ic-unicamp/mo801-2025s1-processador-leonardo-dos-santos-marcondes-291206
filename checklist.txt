@@ -34,7 +34,7 @@ INSTRUÇÕES DE LOAD (TIPO I)
 INSTRUÇÕES TIPO S (STORE)
 
  ✅ SB - Store byte
- SH - Store half-word
+ ✅ SH - Store half-word
  ✅ SW - Store word
 
 INSTRUÇÕES TIPO B (BRANCH)
