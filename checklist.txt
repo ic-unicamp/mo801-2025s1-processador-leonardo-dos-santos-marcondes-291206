@@ -48,8 +48,8 @@ INSTRUÇÕES TIPO B (BRANCH)
 
 INSTRUÇÕES TIPO U (UPPER IMMEDIATE)
 
- LUI - Load upper immediate
- AUIPC - Add upper immediate to PC
+ ✅ LUI - Load upper immediate
+ ✅ AUIPC - Add upper immediate to PC
 
 INSTRUÇÕES TIPO J (JUMP)
 

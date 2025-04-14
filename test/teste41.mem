@@ -1,0 +1,12 @@
+000000b7 // lui x1, 0x0       // x1 = 0x00000000
+123450b7 // lui x1, 0x12345   // x1 = 0x12345000
+abcde137 // lui x2, 0xabcde   // x2 = 0xabcde000
+fffff1b7 // lui x3, 0xfffff   // x3 = 0xfffff000 (negativo em complemento de 2)
+00000293 // addi x5, x0, 0    // x5 = 0
+00108293 // addi x5, x1, 1    // x5 = 0x12345000 + 1 = 0x12345001
+00110293 // addi x5, x2, 1    // x5 = 0xabcde000 + 1 = 0xabcde001
+00118293 // addi x5, x3, 1    // x5 = 0xfffff000 + 1 = 0xfffff001
+40000a13 // addi x20, x0, 0x400  // x20 = 0x400
+014a0a33 // add  x20, x20, x20   // x20 = 0x800
+005a2023 // sw   x5, 0(x20)      // Armazena x5 em M[0x800]
+00100073 // ebreak               // Fim do programa

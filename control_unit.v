@@ -37,6 +37,7 @@ module control_unit (
   parameter SW      = 7'b0100011;
   parameter ALUIMM  = 7'b0010011;
   parameter ALUREG  = 7'b0110011;
+  parameter AUIPC   = 7'b0010111;
   parameter BRANCH  = 7'b1100011;
   parameter LUI     = 7'b0110111;
   parameter JAL     = 7'b1101111;
@@ -60,6 +61,7 @@ module control_unit (
   wire is_jal     = (opcode == JAL);
   wire is_lui     = (opcode == LUI);
   wire is_ebreak  = (opcode == EBREAK);
+  wire is_auipc   = (opcode == AUIPC);
 
   // Lógica de transição de estados
   always @(posedge clk) begin
@@ -93,8 +95,8 @@ module control_unit (
           next_state = EX_B;
         else if (is_jal)
           next_state = EX_J;
-        else if (is_lui)
-          next_state = IF;
+        else if (is_lui || is_auipc)  
+          next_state = WB_ALU;
         else if (is_ebreak)
           next_state = HALT;
         else
@@ -315,6 +317,18 @@ module control_unit (
       WB_ALU: begin
         reg_write_reg = 1;
         mem_to_reg_reg = 0; // Seleciona ALUOut
+
+        if (is_lui) begin
+          // Configuração para LUI (já existente)
+          alu_src_b_reg = 2'b01;     // Imediato como operando B
+          alu_control_reg = 4'b1010; // Operação para passar B (imediato)
+        end
+        else if (is_auipc) begin
+          // Configuração para AUIPC
+          alu_src_a_reg = 2'b00;     // PC como primeiro operando
+          alu_src_b_reg = 2'b01;     // Imediato como segundo operando
+          alu_control_reg = 4'b0010; // Adição (PC + imm)
+        end
       end
       
       WB_MEM: begin

@@ -36,6 +36,7 @@ module core(
   wire [31:0] imm_s;
   wire [31:0] imm_j;
   wire [31:0] imm_b;
+  wire [31:0] imm_u;
   wire [31:0] imm;
   wire [3:0] state;
   wire mem_read, mem_write, reg_write;
@@ -75,14 +76,17 @@ module core(
   assign imm_s  = {{20{IR[31]}}, IR[31:25], IR[11:7]};
   assign imm_j  = {{12{IR[31]}}, IR[19:12], IR[20], IR[30:21], 1'b0};
   assign imm_b  = {{20{IR[31]}}, IR[7], IR[30:25], IR[11:8], 1'b0};
+  assign imm_u  = {IR[31:12], 12'b0};
   assign load_type = funct3;
   assign store_type = funct3;
   
   // Atribuições combinacionais para controle datapath
-  assign imm    = (imm_src == 2'b00) ? imm_i :
-                  (imm_src == 2'b01) ? imm_s :
-                  (imm_src == 2'b10) ? imm_j :
-                  (imm_src == 2'b11) ? imm_b : 32'd0;
+  assign imm = (imm_src == 2'b00) ? imm_i :
+               (imm_src == 2'b01) ? imm_s :
+               (imm_src == 2'b10) ? imm_j :
+               (imm_src == 2'b11) ? imm_b :
+               (opcode == 7'b0110111) ? imm_u : 32'd0; // Adiciona suporte para imm_u
+  
   
   assign alu_in_a = (alu_src_a == 2'b00) ? PC :
                    (alu_src_a == 2'b10) ? A : 32'd0;
@@ -111,8 +115,11 @@ module core(
                        ((ALUOut[1:0] == 2'b00)  ? 4'b0011 :
                        (ALUOut[1:0] == 2'b10)   ? 4'b1100 : 4'b0000) : // Endereço não alinhado
                        4'b1111; // SW (todos os bytes)
-                       
-  assign write_data = mem_to_reg ? MDR : ALUOut;
+  
+  // MODIFICAÇÃO: Usar imm_u diretamente para LUI                     
+  assign write_data = (opcode == 7'b0110111) ? imm_u :                // LUI
+                   (opcode == 7'b0010111) ? (PC + imm_u) :          // AUIPC
+                   mem_to_reg ? MDR : ALUOut;
 
   assign byte_data = (ALUOut[1:0] == 2'b00) ? data_in[7:0]:
                      (ALUOut[1:0] == 2'b01) ? data_in[15:8]:
@@ -150,7 +157,9 @@ module core(
   assign next_IR = ir_write ? data_in : IR;
   assign next_A = (state == ID) ? reg_data1 : A;
   assign next_B = (state == ID) ? reg_data2 : B;
-  assign next_ALUOut = ((state == EX_R) || (state == EX_I) || (state == EX_S) || (state == EX_J) || (state == EX_B)) ? alu_result : ALUOut;
+  assign next_ALUOut = ((state == EX_R) || (state == EX_I) || (state == EX_S) || 
+                     (state == EX_J) || (state == EX_B) || 
+                     (opcode == 7'b0110111) || (opcode == 7'b0010111)) ? alu_result : ALUOut;
   assign next_MDR = mem_read ? load_data : MDR;
   
   // Instanciação dos módulos
@@ -193,17 +202,30 @@ module core(
     .mem_to_reg(mem_to_reg),
     .imm_src(imm_src)
   );
+
+  always @(posedge clk) begin
+    if (opcode == 7'b0010111) begin // AUIPC
+      $display("AUIPC EXECUTION: PC=%h, rd=x%d, imm_u=%h, alu_in_a=%h, alu_in_b=%h", 
+              PC, rd, imm_u, alu_in_a, alu_in_b);
+      $display("alu_result=%h, ALUOut=%h, write_data=%h", 
+              alu_result, ALUOut, write_data);
+    end
+  end
     
   // Atualizações sequenciais dos registradores
   always @(posedge clk) begin
+  
     if (!resetn) begin
+
       PC <= 0;
       IR <= 0;
       A <= 0;
       B <= 0;
       ALUOut <= 0;
       MDR <= 0;
+
     end else begin
+
       PC <= next_PC;
       IR <= next_IR;
       A <= next_A;
