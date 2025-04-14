@@ -12,10 +12,6 @@ module memory(
   assign data_out = mem[address[13:2]];
 
   always @(posedge clk) begin
-    if (we && address == 32'h800) 
-      $display("Escrita em 0x800: Dados=%h, byte_enable=%b", data_in, byte_enable);
-    if (we && address == 32'h804)
-      $display("Escrita em 0x804: Dados=%h, byte_enable=%b", data_in, byte_enable);
     if (we) begin
       if (byte_enable[0]) mem[address[13:2]][7:0] <= data_in[7:0];
       if (byte_enable[1]) mem[address[13:2]][15:8] <= data_in[15:8];

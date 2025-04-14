@@ -4,6 +4,8 @@ module control_unit (
   input [6:0] opcode,
   input [6:0] funct7,
   input [2:0] funct3,
+  input branch_taken,
+  input zero,                // Nova entrada: sinal zero da ALU
   output reg [3:0] state,
   output mem_read,
   output mem_write,
@@ -28,12 +30,14 @@ module control_unit (
   parameter WB_ALU   = 4'd8;  // Write Back from ALU
   parameter WB_MEM   = 4'd9;  // Write Back from Memory
   parameter HALT     = 4'd10; // Halt on EBREAK
+  parameter EX_B     = 4'd11; // Execute B-Type
 
   // Definição dos opcodes
   parameter LW      = 7'b0000011;
   parameter SW      = 7'b0100011;
   parameter ALUIMM  = 7'b0010011;
   parameter ALUREG  = 7'b0110011;
+  parameter BRANCH  = 7'b1100011;
   parameter LUI     = 7'b0110111;
   parameter JAL     = 7'b1101111;
   parameter EBREAK  = 7'b1110011;
@@ -42,6 +46,7 @@ module control_unit (
   parameter IMM_I = 2'b00;
   parameter IMM_S = 2'b01;
   parameter IMM_J = 2'b10;
+  parameter IMM_B = 2'b11;
 
   // Registrador para o próximo estado
   reg [3:0] next_state;
@@ -51,6 +56,7 @@ module control_unit (
   wire is_sw      = (opcode == SW);
   wire is_aluimm  = (opcode == ALUIMM);
   wire is_alureg  = (opcode == ALUREG);
+  wire is_branch  = (opcode == BRANCH); 
   wire is_jal     = (opcode == JAL);
   wire is_lui     = (opcode == LUI);
   wire is_ebreak  = (opcode == EBREAK);
@@ -83,6 +89,8 @@ module control_unit (
           next_state = EX_I;
         else if (is_alureg)
           next_state = EX_R;
+        else if (is_branch)
+          next_state = EX_B;
         else if (is_jal)
           next_state = EX_J;
         else if (is_lui)
@@ -107,6 +115,11 @@ module control_unit (
       EX_S: begin
         next_state = MEM_WR;
       end
+
+      EX_B: begin
+        // Sempre volta para IF após processar o branch
+        next_state = IF;
+      end 
       
       EX_J: begin
         next_state = WB_ALU;
@@ -182,7 +195,6 @@ module control_unit (
       end
             
       EX_R: begin
-
         alu_src_a_reg = 2'b10; // Registrador A como primeiro operando
         alu_src_b_reg = 2'b00; // Registrador B como segundo operando
 
@@ -212,7 +224,6 @@ module control_unit (
       end
       
       EX_I: begin
-
         alu_src_a_reg = 2'b10; // Registrador A como primeiro operando
         alu_src_b_reg = 2'b01; // Imediato como segundo operando
 
@@ -232,7 +243,6 @@ module control_unit (
           endcase
 
         imm_src_reg = IMM_I;
-
       end
       
       EX_S: begin
@@ -249,10 +259,22 @@ module control_unit (
         imm_src_reg = IMM_J;
         pc_write_reg = 1;
       end
+
+      EX_B: begin
+        // Modificação para BEQ usando o sinal zero
+        alu_src_a_reg = 2'b10;     // Registrador A como primeiro operando
+        alu_src_b_reg = 2'b00;     // Registrador B como segundo operando
+        alu_control_reg = 4'b0110; // Subtração para comparação (A - B)
+        imm_src_reg = IMM_B;       // Formato imediato tipo B
+        
+        // Para BEQ, o PC é atualizado se zero=1 (quando A-B=0)
+        if (funct3 == 3'b000) begin // BEQ
+          pc_write_reg = zero;     // Atualiza PC se A-B=0 (zero=1)
+        end
+      end
       
       MEM_RD: begin
         mem_read_reg = 1;
-        //$display("Estado MEM_RD: mem_read=%b", mem_read_reg);
       end
       
       MEM_WR: begin

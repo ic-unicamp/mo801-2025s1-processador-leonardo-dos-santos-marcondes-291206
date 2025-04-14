@@ -4,9 +4,10 @@ module alu(
   output reg [31:0] ALUResult,
   output Zero
 );
+  // Zero é 1 quando ALUResult é 0
   assign Zero = (ALUResult == 0);
+  
   always @(ALUControl, A, B) begin
-    // $display("A : %h, B : %h, ALUResult : %h, ALUControl : %h", A, B, ALUResult, ALUControl);
     case (ALUControl)
       4'b0000: ALUResult = A & B;                     // AND
       4'b0001: ALUResult = A | B;                     // OR
@@ -24,7 +25,4 @@ module alu(
       default: ALUResult = 32'b0;
     endcase
   end
-  //always @(ALUControl, A, B) begin
-  //  $display("ALU: A=%h, B=%h, ALUControl=%b, Result=%h", A, B, ALUControl, ALUResult);
-  //end
 endmodule

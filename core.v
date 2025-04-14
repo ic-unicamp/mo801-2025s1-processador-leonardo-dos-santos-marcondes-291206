@@ -20,6 +20,7 @@ module core(
   parameter WB_ALU   = 4'd8;
   parameter WB_MEM   = 4'd9;
   parameter HALT     = 4'd10;
+  parameter EX_B     = 4'd11;
 
   // Registradores internos
   reg [31:0] PC, IR, A, B, ALUOut, MDR;
@@ -34,6 +35,7 @@ module core(
   wire [31:0] imm_i;
   wire [31:0] imm_s;
   wire [31:0] imm_j;
+  wire [31:0] imm_b;
   wire [31:0] imm;
   wire [3:0] state;
   wire mem_read, mem_write, reg_write;
@@ -58,6 +60,9 @@ module core(
   wire [31:0] next_B;
   wire [31:0] next_ALUOut;
   wire [31:0] next_MDR;
+  wire branch_equal;
+  wire branch_taken;
+  wire [31:0] branch_target;
 
   // Atribuições combinacionais para parse de instrução
   assign opcode = IR[6:0];
@@ -69,13 +74,15 @@ module core(
   assign imm_i  = {{20{IR[31]}}, IR[31:20]};
   assign imm_s  = {{20{IR[31]}}, IR[31:25], IR[11:7]};
   assign imm_j  = {{12{IR[31]}}, IR[19:12], IR[20], IR[30:21], 1'b0};
+  assign imm_b  = {{20{IR[31]}}, IR[7], IR[30:25], IR[11:8], 1'b0};
   assign load_type = funct3;
   assign store_type = funct3;
   
   // Atribuições combinacionais para controle datapath
   assign imm    = (imm_src == 2'b00) ? imm_i :
                   (imm_src == 2'b01) ? imm_s :
-                  (imm_src == 2'b10) ? imm_j : 32'd0;
+                  (imm_src == 2'b10) ? imm_j :
+                  (imm_src == 2'b11) ? imm_b : 32'd0;
   
   assign alu_in_a = (alu_src_a == 2'b00) ? PC :
                    (alu_src_a == 2'b10) ? A : 32'd0;
@@ -124,12 +131,25 @@ module core(
                      (load_type == 3'b101) ? {16'b0, half_data} :               // LHU (extensão com zeros)
                      data_in;  // Caso padrão
 
-  // Atribuição dos sinais
-  assign next_PC = pc_write ? alu_result : PC;
+  // Operação de BEQ - Modificado para usar o sinal zero da ALU
+  // Não precisamos mais dessa lógica já que usaremos o zero da ALU
+  // assign branch_equal = (A == B);
+  
+  // O branch_taken será determinado pelo control_unit com base no zero
+  assign branch_taken = (state == EX_B && opcode == 7'b1100011 && funct3 == 3'b000 && zero);
+  
+  // Calcula o target do branch
+  assign branch_target = PC + imm_b;
+
+  // Na atribuição de next_PC
+  assign next_PC = branch_taken ? branch_target : 
+                  pc_write ? alu_result : PC;
+
+  // Demais atribuições para os próximos valores dos registradores
   assign next_IR = ir_write ? data_in : IR;
   assign next_A = (state == ID) ? reg_data1 : A;
   assign next_B = (state == ID) ? reg_data2 : B;
-  assign next_ALUOut = ((state == EX_R) || (state == EX_I) || (state == EX_S) || (state == EX_J)) ? alu_result : ALUOut;
+  assign next_ALUOut = ((state == EX_R) || (state == EX_I) || (state == EX_S) || (state == EX_J) || (state == EX_B)) ? alu_result : ALUOut;
   assign next_MDR = mem_read ? load_data : MDR;
   
   // Instanciação dos módulos
@@ -158,6 +178,8 @@ module core(
     .opcode(opcode),
     .funct7(funct7),
     .funct3(funct3),
+    .branch_taken(branch_taken),
+    .zero(zero),              // Adicionado o sinal zero como entrada
     .state(state),
     .mem_read(mem_read),
     .mem_write(mem_write),
@@ -170,28 +192,24 @@ module core(
     .mem_to_reg(mem_to_reg),
     .imm_src(imm_src)
   );
-  
+    
   // Atualizações sequenciais dos registradores
   always @(posedge clk) begin
-
     if (!resetn) begin
-
       PC <= 0;
       IR <= 0;
       A <= 0;
       B <= 0;
       ALUOut <= 0;
       MDR <= 0;
-
     end else begin
-    
       PC <= next_PC;
       IR <= next_IR;
       A <= next_A;
       B <= next_B;
       ALUOut <= next_ALUOut;
       MDR <= next_MDR;
-
+      
     end
   end
 endmodule
