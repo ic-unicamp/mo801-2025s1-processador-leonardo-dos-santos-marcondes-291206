@@ -30,22 +30,6 @@ always #1 clk = (clk===1'b0);
 // No módulo tb (testbench)
 reg ebreak_detected = 0;
 
-// Adicione este bloco para detectar o EBREAK baseado no endereço
-always @(posedge clk) begin
-  // Assumindo que o EBREAK é a última instrução no seu programa
-  // e está no endereço 0x30 (ou qualquer endereço correto para o seu caso)
-  if (address == 32'h30 && !ebreak_detected) begin
-    ebreak_detected = 1;
-    $display("\n--- Final register values ---");
-    $display("x2 = %h", tb.dut.rf.regs[2]);
-    $display("x3 = %h", tb.dut.rf.regs[3]);
-    $display("x4 = %h", tb.dut.rf.regs[4]);
-    $display("x5 = %h", tb.dut.rf.regs[5]);
-    $display("x20 = %h", tb.dut.rf.regs[20]);
-    $display("Memory[0x800] = %h", tb.m.mem[32'h800 >> 2]);
-  end
-end
-
 // Inicia a simulação e executa até 2000 unidades de tempo após o reset
 initial begin
   $dumpfile("saida.vcd");

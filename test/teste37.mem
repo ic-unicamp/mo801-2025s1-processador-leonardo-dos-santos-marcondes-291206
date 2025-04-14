@@ -1,0 +1,17 @@
+00a00113 // addi x2, x0, 10      // x2 = 10
+00500193 // addi x3, x0, 5       // x3 = 5
+01400213 // addi x4, x0, 20      // x4 = 20
+00000293 // addi x5, x0, 0       // x5 = 0
+0041c263 // blt  x3, x4, less1   // x3 < x4? Sim, pula para less1
+00128293 // addi x5, x5, 1       // x5 += 1 (não executado)
+00228293 // addi x5, x5, 2       // less1: x5 += 2
+0022c263 // blt  x5, x2, less2   // x5 < x2? Sim, pula para less2
+00428293 // addi x5, x5, 4       // x5 += 4 (não executado)
+00828293 // addi x5, x5, 8       // less2: x5 += 8
+0041c263 // blt  x3, x4, less3   // x3 < x4? Sim, pula para less3
+01028293 // addi x5, x5, 16      // x5 += 16 (não executado)
+02028293 // addi x5, x5, 32      // less3: x5 += 32
+40000a13 // addi x20, x0, 0x400  // x20 = 0x400
+014a0a33 // add  x20, x20, x20   // x20 = 0x800
+005a2023 // sw   x5, 0(x20)      // Armazena x5 em M[0x800]
+00100073 // ebreak               // Fim do programa

@@ -1,0 +1,23 @@
+00a00113 // addi x2, x0, 10        // x2 = 10 (0x0A)
+fff00193 // addi x3, x0, -1        // x3 = -1 (0xFFFFFFFF em unsigned)
+01400213 // addi x4, x0, 20        // x4 = 20 (0x14)
+00000293 // addi x5, x0, 0         // x5 = 0
+0041e263 // bltu x3, x4, ltu1      // x3 <u x4? Não, 0xFFFFFFFF > 20, não pula
+00128293 // addi x5, x5, 1         // x5 += 1
+0021e263 // bltu x3, x2, ltu2      // x3 <u x2? Não, 0xFFFFFFFF > 10, não pula
+00228293 // addi x5, x5, 2         // x5 += 2
+0031e263 // bltu x3, x3, ltu3      // x3 <u x3? Não, iguais, não pula
+00428293 // addi x5, x5, 4         // x5 += 4
+00316263 // bltu x2, x3, ltu4      // x2 <u x3? Sim, 10 < 0xFFFFFFFF, pula
+00828293 // addi x5, x5, 8         // x5 += 8 (não executado)
+01028293 // addi x5, x5, 16        // ltu4: x5 += 16
+0041e263 // bltu x3, x4, ltu5      // x3 <u x4? Não, 0xFFFFFFFF > 20, não pula
+02028293 // addi x5, x5, 32        // x5 += 32
+00226263 // bltu x4, x2, ltu6      // x4 <u x2? Não, 20 > 10, não pula
+04028293 // addi x5, x5, 64        // x5 += 64
+00226263 // bltu x4, x2, ltu7      // x4 <u x2? Não, 20 > 10, não pula
+08028293 // addi x5, x5, 128       // x5 += 128
+40000a13 // addi x20, x0, 0x400    // x20 = 0x400
+014a0a33 // add  x20, x20, x20     // x20 = 0x800
+005a2023 // sw   x5, 0(x20)        // Armazena x5 em M[0x800]
+00100073 // ebreak                 // Fim do programa

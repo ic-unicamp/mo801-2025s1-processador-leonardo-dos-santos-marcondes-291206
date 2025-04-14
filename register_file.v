@@ -23,6 +23,6 @@ module register_file(
   always @(posedge clk) begin
     if (reg_write && rd != 0)
       regs[rd] <= write_data;
-    //$display("X0 : %h, X1 : %h, X2 : %h, X3 : %h, X4 : %h, X5 : %h, X20 : %h", regs[0], regs[1], regs[2], regs[3], regs[4], regs[5], regs[20]);
+    $display("X0 : %h, X1 : %h, X2 : %h, X3 : %h, X4 : %h, X5 : %h, X20 : %h", regs[0], regs[1], regs[2], regs[3], regs[4], regs[5], regs[20]);
   end
 endmodule

@@ -5,7 +5,7 @@ module control_unit (
   input [6:0] funct7,
   input [2:0] funct3,
   input branch_taken,
-  input zero,                // Nova entrada: sinal zero da ALU
+  input zero,            
   output reg [3:0] state,
   output mem_read,
   output mem_write,
@@ -267,10 +267,41 @@ module control_unit (
         alu_control_reg = 4'b0110; // Subtração para comparação (A - B)
         imm_src_reg = IMM_B;       // Formato imediato tipo B
         
-        // Para BEQ, o PC é atualizado se zero=1 (quando A-B=0)
-        if (funct3 == 3'b000) begin // BEQ
-          pc_write_reg = zero;     // Atualiza PC se A-B=0 (zero=1)
-        end
+        // Lógica específica para cada tipo de branch
+        case (funct3)
+          3'b000: begin // BEQ
+            pc_write_reg = zero;     // Atualiza PC se A-B=0 (zero=1)
+          end
+          
+          3'b001: begin // BNE
+            pc_write_reg = !zero;    // Atualiza PC se A-B≠0 (zero=0)
+          end
+          
+          3'b100: begin // BLT
+            alu_control_reg = 4'b0111; // SLT - Set Less Than (com sinal)
+            pc_write_reg = !zero;      // SLT retorna 1 se A<B, então !zero será verdadeiro
+          end
+          
+          3'b101: begin // BGE 
+            alu_control_reg = 4'b0111; // SLT - Set Less Than (com sinal)
+            pc_write_reg = zero;       // Invertemos a lógica de BLT: se !(A<B) então A>=B
+          end
+
+          3'b110: begin // BLTU 
+            alu_control_reg = 4'b1001; // SLTU - Set Less Than Unsigned
+            pc_write_reg = !zero;      // SLTU retorna 1 se A<B (unsigned), então !zero
+          end
+
+          3'b111: begin // BGEU - Nova instrução
+            alu_control_reg = 4'b1001; // SLTU - Set Less Than Unsigned
+            pc_write_reg = zero;       // Invertemos a lógica de BLTU: se !(A<B) então A>=B
+          end
+          
+          default: begin
+            pc_write_reg = 0;        // Para outros tipos de branch não implementados
+          end
+        endcase
+
       end
       
       MEM_RD: begin

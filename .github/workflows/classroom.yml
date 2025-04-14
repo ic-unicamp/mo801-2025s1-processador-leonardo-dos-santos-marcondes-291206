@@ -256,7 +256,52 @@ jobs:
           setup-command: "./setup.sh"
           command: "./run.sh 35"
           timeout: 10
-      
+
+      - name: Teste 36
+        id: teste-36
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 36
+          setup-command: "./setup.sh"
+          command: "./run.sh 36"
+          timeout: 10
+
+      - name: Teste 37
+        id: teste-37
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 37
+          setup-command: "./setup.sh"
+          command: "./run.sh 37"
+          timeout: 10
+
+      - name: Teste 38
+        id: teste-38
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 38
+          setup-command: "./setup.sh"
+          command: "./run.sh 38"
+          timeout: 10
+
+      - name: Teste 39
+        id: teste-39
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 39
+          setup-command: "./setup.sh"
+          command: "./run.sh 39"
+          timeout: 10
+
+      - name: Teste 40
+        id: teste-40
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: Teste 40
+          setup-command: "./setup.sh"
+          command: "./run.sh 40"
+          timeout: 10
+
       - name: Autograding Reporter
         uses: classroom-resources/autograding-grading-reporter@v1
         env:
@@ -287,5 +332,10 @@ jobs:
           TESTE-33_RESULTS: "${{steps.teste-33.outputs.result}}"
           TESTE-34_RESULTS: "${{steps.teste-34.outputs.result}}"
           TESTE-35_RESULTS: "${{steps.teste-35.outputs.result}}"
+          TESTE-36_RESULTS: "${{steps.teste-36.outputs.result}}"
+          TESTE-37_RESULTS: "${{steps.teste-37.outputs.result}}"
+          TESTE-38_RESULTS: "${{steps.teste-38.outputs.result}}"
+          TESTE-38_RESULTS: "${{steps.teste-39.outputs.result}}"
+          TESTE-40_RESULTS: "${{steps.teste-40.outputs.result}}"
         with:
-          runners: teste-00,teste-10,teste-11,teste-12,teste-13,teste-14,teste-15,teste-16,teste-17,teste-18,teste-19,teste-20,teste-21,teste-22,teste-23,teste-24,teste-25,teste-26,teste-27,teste-28,teste-29,teste-30,teste-31,teste-32,teste-33,teste-34, teste-35
+          runners: teste-00,teste-10,teste-11,teste-12,teste-13,teste-14,teste-15,teste-16,teste-17,teste-18,teste-19,teste-20,teste-21,teste-22,teste-23,teste-24,teste-25,teste-26,teste-27,teste-28,teste-29,teste-30,teste-31,teste-32,teste-33,teste-34, teste-35, teste-36, teste-37, teste-38, teste-38, teste-40

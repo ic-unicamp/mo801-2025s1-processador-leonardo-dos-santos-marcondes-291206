@@ -131,12 +131,13 @@ module core(
                      (load_type == 3'b101) ? {16'b0, half_data} :               // LHU (extensão com zeros)
                      data_in;  // Caso padrão
 
-  // Operação de BEQ - Modificado para usar o sinal zero da ALU
-  // Não precisamos mais dessa lógica já que usaremos o zero da ALU
-  // assign branch_equal = (A == B);
-  
-  // O branch_taken será determinado pelo control_unit com base no zero
-  assign branch_taken = (state == EX_B && opcode == 7'b1100011 && funct3 == 3'b000 && zero);
+  assign branch_taken = (state == EX_B && opcode == 7'b1100011 && 
+                        ((funct3 == 3'b000 && zero) ||         // BEQ
+                         (funct3 == 3'b001 && !zero) ||        // BNE
+                         (funct3 == 3'b100 && !zero && alu_control == 4'b0111) || // BLT (SLT result != 0)
+                         (funct3 == 3'b101 && zero && alu_control == 4'b0111) ||  // BGE (SLT result == 0)
+                         (funct3 == 3'b110 && !zero && alu_control == 4'b1001) || // BLTU (SLTU result != 0)
+                         (funct3 == 3'b111 && zero && alu_control == 4'b1001)));  // BGEU (SLTU result == 0)
   
   // Calcula o target do branch
   assign branch_target = PC + imm_b;
@@ -179,7 +180,7 @@ module core(
     .funct7(funct7),
     .funct3(funct3),
     .branch_taken(branch_taken),
-    .zero(zero),              // Adicionado o sinal zero como entrada
+    .zero(zero),           
     .state(state),
     .mem_read(mem_read),
     .mem_write(mem_write),

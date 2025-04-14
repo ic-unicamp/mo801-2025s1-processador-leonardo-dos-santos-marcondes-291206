@@ -39,12 +39,12 @@ INSTRUÇÕES TIPO S (STORE)
 
 INSTRUÇÕES TIPO B (BRANCH)
 
- BEQ - Branch if equal
- BNE - Branch if not equal
- BLT - Branch if less than (signed)
- BGE - Branch if greater/equal (signed)
- BLTU - Branch if less than (unsigned)
- BGEU - Branch if greater/equal (unsigned)
+ ✅ BEQ - Branch if equal
+ ✅ BNE - Branch if not equal
+ ✅ BLT - Branch if less than (signed)
+ ✅ BGE - Branch if greater/equal (signed)
+ ✅ BLTU - Branch if less than (unsigned)
+ ✅ BGEU - Branch if greater/equal (unsigned)
 
 INSTRUÇÕES TIPO U (UPPER IMMEDIATE)
 
