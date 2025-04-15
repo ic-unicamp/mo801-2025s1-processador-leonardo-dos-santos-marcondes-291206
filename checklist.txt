@@ -53,15 +53,15 @@ INSTRUÇÕES TIPO U (UPPER IMMEDIATE)
 
 INSTRUÇÕES TIPO J (JUMP)
 
- JAL - Jump and link
- JALR - Jump and link register
+ ✅ JAL - Jump and link
+ ✅ JALR - Jump and link register
 
 INSTRUÇÕES DE CONTROLE DO SISTEMA
 
- ECALL - Environment call
+ ✅ ECALL - Environment call
  ✅ EBREAK - Environment break
- FENCE - Fence
- FENCE.I - Fence instruction
+ ✅ FENCE - Fence
+ ✅ FENCE.I - Fence instruction
 
 INSTRUÇÕES CSR (CONTROL AND STATUS REGISTER)
 

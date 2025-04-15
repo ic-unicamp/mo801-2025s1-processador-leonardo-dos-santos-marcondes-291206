@@ -31,6 +31,7 @@ module control_unit (
   parameter WB_MEM   = 4'd9;  // Write Back from Memory
   parameter HALT     = 4'd10; // Halt on EBREAK
   parameter EX_B     = 4'd11; // Execute B-Type
+  parameter SYSCALL  = 4'd12; // System Call
 
   // Definição dos opcodes
   parameter LW      = 7'b0000011;
@@ -41,7 +42,9 @@ module control_unit (
   parameter BRANCH  = 7'b1100011;
   parameter LUI     = 7'b0110111;
   parameter JAL     = 7'b1101111;
+  parameter JALR    = 7'b1100111;
   parameter EBREAK  = 7'b1110011;
+  parameter ECALL   = 7'b1110011;
 
   // Definição dos formatos de imediato
   parameter IMM_I = 2'b00;
@@ -61,7 +64,9 @@ module control_unit (
   wire is_jal     = (opcode == JAL);
   wire is_lui     = (opcode == LUI);
   wire is_ebreak  = (opcode == EBREAK);
+  wire is_ecall   = (opcode == ECALL);
   wire is_auipc   = (opcode == AUIPC);
+  wire is_jalr    = (opcode == JALR);
 
   // Lógica de transição de estados
   always @(posedge clk) begin
@@ -83,6 +88,10 @@ module control_unit (
       end
       
       ID: begin
+
+        if (is_jalr)
+          next_state = EX_I;  // JALR usa estado similar ao I-type
+
         if (is_lw)
           next_state = EX_I;
         else if (is_sw)
@@ -99,6 +108,8 @@ module control_unit (
           next_state = WB_ALU;
         else if (is_ebreak)
           next_state = HALT;
+        else if (is_ecall)
+          next_state = SYSCALL;  
         else
           next_state = IF;
       end
@@ -108,6 +119,8 @@ module control_unit (
       end
       
       EX_I: begin
+        if (is_jalr) 
+          next_state = IF;  // Retornar para busca de instrução após JALR
         if (is_lw)
           next_state = MEM_RD;
         else
@@ -122,10 +135,6 @@ module control_unit (
         // Sempre volta para IF após processar o branch
         next_state = IF;
       end 
-      
-      EX_J: begin
-        next_state = WB_ALU;
-      end
       
       MEM_RD: begin
         next_state = WB_MEM;
@@ -228,11 +237,16 @@ module control_unit (
       EX_I: begin
         alu_src_a_reg = 2'b10; // Registrador A como primeiro operando
         alu_src_b_reg = 2'b01; // Imediato como segundo operando
+        imm_src_reg = IMM_I;
 
+        // Configure ALU control baseado no tipo de instrução
         if (opcode == 7'b0000011) // Opcode para instruções Load (LW, LH, LB)
           alu_control_reg = 4'b0010; // Adição para cálculo de endereço
+        else if (is_jalr)
+          alu_control_reg = 4'b0010; // Adição para JALR
         else
           case (funct3)
+            // Manter os cases existentes para outras instruções tipo I
             3'h0: alu_control_reg = 4'b0010; // ADDI
             3'h2: alu_control_reg = 4'b0111; // SLTI
             3'h3: alu_control_reg = 4'b1001; // SLTIU
@@ -240,11 +254,20 @@ module control_unit (
             3'h6: alu_control_reg = 4'b0001; // ORI
             3'h7: alu_control_reg = 4'b0000; // ANDI
             3'h1: alu_control_reg = 4'b0100; // SLLI
-            3'h5: alu_control_reg = (funct7 == 7'b0100000) ? 4'b1000 : 4'b0101; // SRAI or SRLI
+            3'h5: alu_control_reg = (funct7 == 7'b0100000) ? 4'b1000 : 4'b0101; // SRAI ou SRLI
             default: alu_control_reg = 4'b0000;
           endcase
-
-        imm_src_reg = IMM_I;
+          
+        // Ative sinais adicionais para JALR
+        if (is_jalr) begin
+          pc_write_reg = 1;     // Ativa escrita no PC para realizar o salto
+          reg_write_reg = 1;    // Ativa escrita no registrador para salvar PC+4
+          next_state = IF;      // Volte para busca de instrução após JALR
+        end
+        else if (is_lw)
+          next_state = MEM_RD;
+        else
+          next_state = WB_ALU;
       end
       
       EX_S: begin
@@ -255,11 +278,17 @@ module control_unit (
       end
       
       EX_J: begin
-        alu_src_a_reg = 2'b00; // PC como primeiro operando
-        alu_src_b_reg = 2'b01; // Imediato como segundo operando
-        alu_control_reg = 4'b0010; // Adição
-        imm_src_reg = IMM_J;
-        pc_write_reg = 1;
+        alu_src_a_reg = 2'b00;     // PC como primeiro operando
+        alu_src_b_reg = 2'b01;     // Imediato como segundo operando
+        alu_control_reg = 4'b0010; // Adição para calcular PC + offset
+        imm_src_reg = IMM_J;       // Formato de imediato J
+        pc_write_reg = 1;          // Atualiza o PC
+        reg_write_reg = 1;         // Ativa escrita no registrador
+        mem_to_reg_reg = 0;        // Seleciona ALUOut
+
+        $display("JAL: Updating PC");
+        
+        next_state = IF;
       end
 
       EX_B: begin
@@ -338,6 +367,10 @@ module control_unit (
       
       HALT: begin
         // Nenhum sinal ativo
+      end
+
+      SYSCALL: begin
+        next_state = IF;
       end
     endcase
   end

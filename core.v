@@ -64,6 +64,10 @@ module core(
   wire branch_equal;
   wire branch_taken;
   wire [31:0] branch_target;
+  wire [31:0] return_address;
+  wire [31:0] jal_target;
+  wire [31:0] jalr_target;
+  wire is_jalr;
 
   // Atribuições combinacionais para parse de instrução
   assign opcode = IR[6:0];
@@ -79,6 +83,11 @@ module core(
   assign imm_u  = {IR[31:12], 12'b0};
   assign load_type = funct3;
   assign store_type = funct3;
+  assign return_address = PC + 4;
+  assign jal_target = PC + imm_j;
+  assign jalr_target = (ALUOut & 32'hFFFFFFFE); 
+  assign is_jalr = (opcode == 7'b1100111);
+
   
   // Atribuições combinacionais para controle datapath
   assign imm = (imm_src == 2'b00) ? imm_i :
@@ -117,9 +126,10 @@ module core(
                        4'b1111; // SW (todos os bytes)
   
   // MODIFICAÇÃO: Usar imm_u diretamente para LUI                     
-  assign write_data = (opcode == 7'b0110111) ? imm_u :                // LUI
-                   (opcode == 7'b0010111) ? (PC + imm_u) :          // AUIPC
-                   mem_to_reg ? MDR : ALUOut;
+  assign write_data = (opcode == 7'b0110111) ? imm_u :          // LUI
+                  (opcode == 7'b0010111) ? (PC + imm_u) :    // AUIPC
+                  (opcode == 7'b1101111 || is_jalr) ? return_address :  // JAL/JALR
+                  mem_to_reg ? MDR : ALUOut;
 
   assign byte_data = (ALUOut[1:0] == 2'b00) ? data_in[7:0]:
                      (ALUOut[1:0] == 2'b01) ? data_in[15:8]:
@@ -151,7 +161,9 @@ module core(
 
   // Na atribuição de next_PC
   assign next_PC = branch_taken ? branch_target : 
-                  pc_write ? alu_result : PC;
+                (pc_write && opcode == 7'b1101111) ? jal_target :
+                (pc_write && is_jalr) ? jalr_target :
+                pc_write ? alu_result : PC;
 
   // Demais atribuições para os próximos valores dos registradores
   assign next_IR = ir_write ? data_in : IR;
@@ -203,14 +215,16 @@ module core(
     .imm_src(imm_src)
   );
 
-  always @(posedge clk) begin
-    if (opcode == 7'b0010111) begin // AUIPC
-      $display("AUIPC EXECUTION: PC=%h, rd=x%d, imm_u=%h, alu_in_a=%h, alu_in_b=%h", 
-              PC, rd, imm_u, alu_in_a, alu_in_b);
-      $display("alu_result=%h, ALUOut=%h, write_data=%h", 
-              alu_result, ALUOut, write_data);
-    end
-  end
+  //always @(posedge clk) begin
+  //  if (opcode == 7'b1101111) begin // JAL
+  //    $display("JAL Detailed Debug:");
+  //    $display("  Current PC: %h", PC);
+  //    $display("  Instruction: %h", IR);
+  //    $display("  Target Address: %h", jal_target);
+  //    $display("  Return Address: %h", return_address);
+  //    $display("  rd: x%d", rd);
+  //  end
+  //end
     
   // Atualizações sequenciais dos registradores
   always @(posedge clk) begin
